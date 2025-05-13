@@ -1,0 +1,641 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Qualidade de Software - ISO 25010</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* Header com Gradiente Animado */
+        header {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Navbar */
+        nav {
+            background-color: #2e7d32;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .content {
+            display: none;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Estilo para os títulos h2 */
+        .content h2 {
+            color: #2e7d32;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-bottom: 2px solid #e0e0e0;
+            background: linear-gradient(135deg, #c8e6c9, #e8f5e9);
+            border-radius: 6px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para os títulos h3 */
+        .content h3 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background-color: rgba(200, 230, 201, 0.3); /* Verde claro com transparência */
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* Backgrounds para Seções */
+        #home {
+            background: linear-gradient(to bottom, #ffffff, #e8f5e9);
+        }
+
+        #iso {
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"%3E%3Cpath fill="%23c8e6c9" fill-opacity="0.1" d="M0 0h80v80H0zm40 40a20 20 0 1 0 0-40 20 20 0 0 0 0 40z"/%3E%3C/svg%3E');
+            background-size: 80px 80px;
+        }
+
+        #sobre {
+            background: linear-gradient(to bottom, #e8f5e9, #ffffff);
+        }
+
+        /* Características */
+        .characteristics {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .characteristic-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .characteristic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .characteristic-image {
+            height: 180px;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .characteristic-image svg {
+            width: 140px;
+            height: 140px;
+            transition: transform 0.3s ease;
+        }
+        
+        .characteristic-card:hover .characteristic-image svg {
+            transform: scale(1.1);
+        }
+
+        .characteristic-content {
+            padding: 1.5rem;
+        }
+
+        .characteristic-content h3 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background-color: rgba(200, 230, 201, 0.3);
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Destaque */
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 1rem;
+            border-left: 4px solid #2e7d32;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Autor */
+        .author-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            background-color: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .author-image {
+            flex-shrink: 0;
+        }
+
+        .author-info {
+            flex-grow: 1;
+        }
+
+        .author-info h3 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            padding: 0.3rem 0.8rem;
+            background-color: rgba(200, 230, 201, 0.3);
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Habilidades */
+        .skills-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .skills-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .skill-tag {
+            background-color: #2e7d32;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-right: 0.8rem;
+            display: inline-block;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .characteristics {
+                grid-template-columns: 1fr;
+            }
+            
+            .author-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+<h1>Qualidade de Software</h1>
+<p>Padrões e características baseados na ISO 25010</p>
+</header>
+<nav>
+<ul>
+<li><a class="nav-link active" data-target="home" href="#">Home</a></li>
+<li><a class="nav-link" data-target="iso" href="#">ISO</a></li>
+<li><a class="nav-link" data-target="sobre" href="#">Sobre</a></li>
+<li><a class="nav-link" data-target="normas" href="#">Normas</a></li></ul>
+</nav>
+<main>
+<!-- Home Section -->
+<section class="content active" id="home">
+<h2>ISO 25010 - Qualidade de Software</h2>
+<div class="highlight">
+<p>A ISO/IEC 25010 é um padrão internacional que define um modelo de qualidade para sistemas e produtos de software. Este modelo categoriza as propriedades de qualidade do produto de software em características e subcaracterísticas.</p>
+</div>
+<p>O modelo de qualidade da ISO 25010 substitui o modelo anterior da ISO 9126 e é parte da família de normas SQuaRE (Systems and Software Quality Requirements and Evaluation). Esta norma fornece um framework para avaliar a qualidade do software de forma consistente.</p>
+<h3>Conceitos Principais</h3>
+<p>A qualidade de software pode ser interpretada como o grau em que um produto de software satisfaz os requisitos estabelecidos e as necessidades implícitas dos usuários, quando usado sob condições específicas. O modelo de qualidade da ISO 25010 divide a qualidade em 8 características principais:</p>
+<ol>
+<li><strong>Adequação Funcional</strong>: capacidade do produto de software de fornecer funções que atendam às necessidades explícitas e implícitas dos usuários.</li>
+<li><strong>Eficiência de Desempenho</strong>: desempenho em relação à quantidade de recursos utilizados.</li>
+<li><strong>Compatibilidade</strong>: capacidade de trocar informações com outros produtos, sistemas ou componentes.</li>
+<li><strong>Usabilidade</strong>: facilidade com que o produto pode ser usado por determinados usuários para atingir objetivos específicos.</li>
+<li><strong>Confiabilidade</strong>: capacidade de manter um nível de desempenho especificado quando usado em condições específicas.</li>
+<li><strong>Segurança</strong>: proteção de informações e dados contra acesso não autorizado.</li>
+<li><strong>Manutenibilidade</strong>: facilidade com que um produto pode ser modificado para melhorias, correções ou adaptações.</li>
+<li><strong>Portabilidade</strong>: facilidade com que um sistema pode ser transferido de um ambiente para outro.</li>
+</ol>
+<p>Cada uma destas características é dividida em subcaracterísticas, que fornecem um framework mais detalhado para avaliação da qualidade do software.</p>
+<div class="highlight">
+<p>O objetivo da ISO 25010 é estabelecer critérios para especificação, medição e avaliação da qualidade de produtos de software, ajudando desenvolvedores e organizações a entregar produtos que atendam às expectativas dos usuários.</p>
+</div>
+</section>
+<!-- ISO Section -->
+<section class="content" id="iso">
+<h2>Características da ISO 25010</h2>
+<p>A ISO 25010 define oito características principais de qualidade de software, cada uma com suas respectivas subcaracterísticas. A seguir estão detalhadas estas características com representações visuais:</p>
+<div class="characteristics">
+<!-- Adequação Funcional -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M65,35 L45,55 L35,45" fill="none" stroke="#2e7d32" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+<rect fill="#2e7d32" height="8" rx="2" width="40" x="30" y="65"></rect>
+<rect fill="#2e7d32" height="4" rx="1" width="30" x="35" y="73"></rect>
+<rect fill="#2e7d32" height="8" rx="2" width="20" x="40" y="22"></rect>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Adequação Funcional</h3>
+<p>Representa o grau em que um produto ou sistema fornece funções que atendem às necessidades declaradas e implícitas quando usado sob condições especificadas.</p>
+<p><strong>Subcaracterísticas:</strong> Completude funcional, Correção funcional, Adequação funcional</p>
+</div>
+</div>
+<!-- Eficiência de Desempenho -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M25,75 L75,75" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M25,35 L75,35" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M30,75 L30,35" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M50,75 L50,25" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M70,75 L70,45" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="30" cy="35" fill="#ff5722" r="4"></circle>
+<circle cx="50" cy="25" fill="#ff5722" r="4"></circle>
+<circle cx="70" cy="45" fill="#ff5722" r="4"></circle>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Eficiência de Desempenho</h3>
+<p>Representa o desempenho em relação à quantidade de recursos utilizados sob condições estabelecidas.</p>
+<p><strong>Subcaracterísticas:</strong> Comportamento temporal, Utilização de recursos, Capacidade</p>
+</div>
+</div>
+<!-- Compatibilidade -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<rect fill="#c8e6c9" height="30" rx="2" stroke="#2e7d32" stroke-width="2" width="20" x="25" y="35"></rect>
+<rect fill="#c8e6c9" height="30" rx="2" stroke="#2e7d32" stroke-width="2" width="20" x="55" y="35"></rect>
+<path d="M45,50 L55,50" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M35,42 L35,45 M35,50 L35,53 M35,58 L35,58" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M65,42 L65,45 M65,50 L65,53 M65,58 L65,58" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Compatibilidade</h3>
+<p>Capacidade de dois ou mais sistemas ou componentes de trocar informações e/ou realizar suas funções requeridas enquanto compartilham o mesmo ambiente.</p>
+<p><strong>Subcaracterísticas:</strong> Coexistência, Interoperabilidade</p>
+</div>
+</div>
+<!-- Usabilidade -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<circle cx="50" cy="40" fill="#c8e6c9" r="12" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M35,75 C35,62 65,62 65,75" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"></path>
+<path d="M30,30 L40,40 M70,30 L60,40" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M45,46 L55,46" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Usabilidade</h3>
+<p>Grau em que um produto pode ser usado por usuários específicos para atingir objetivos específicos com eficácia, eficiência e satisfação em um contexto específico de uso.</p>
+<p><strong>Subcaracterísticas:</strong> Reconhecimento de adequação, Apreensibilidade, Operabilidade, Proteção contra erro do usuário, Estética da interface, Acessibilidade</p>
+</div>
+</div>
+<!-- Confiabilidade -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M50,30 L50,70" stroke="#2e7d32" stroke-linecap="round" stroke-width="6"></path>
+<path d="M35,35 L65,65" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M65,35 L35,65" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="50" cy="50" fill="none" r="15" stroke="#2e7d32" stroke-width="2"></circle>
+<circle cx="50" cy="50" fill="#ff5722" r="5"></circle>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Confiabilidade</h3>
+<p>Capacidade do sistema de desempenhar as funções especificadas quando usado sob condições e período de tempo determinados.</p>
+<p><strong>Subcaracterísticas:</strong> Maturidade, Disponibilidade, Tolerância a falhas, Recuperabilidade</p>
+</div>
+</div>
+<!-- Segurança -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M50,25 L25,35 V55 C25,65 35,75 50,80 C65,75 75,65 75,55 V35 L50,25z" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"></path>
+<path d="M42,50 L48,56 L58,46" fill="none" stroke="#2e7d32" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Segurança</h3>
+<p>Capacidade do produto de proteger informações e dados para que pessoas ou sistemas não autorizados não possam lê-los ou modificá-los.</p>
+<p><strong>Subcaracterísticas:</strong> Confidencialidade, Integridade, Não repúdio, Responsabilização, Autenticidade</p>
+</div>
+</div>
+<!-- Manutenibilidade -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M35,50 C35,42.268 41.268,36 49,36 C56.732,36 63,42.268 63,50 C63,57.732 56.732,64 49,64 L35,64" fill="none" stroke="#2e7d32" stroke-width="2"></path>
+<path d="M30,56 L35,64 L40,56" fill="none" stroke="#2e7d32" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M30,44 L40,44" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M28,50 L42,50" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="49" cy="50" fill="#ff5722" r="5"></circle>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Manutenibilidade</h3>
+<p>Grau de efetividade e eficiência com o qual um produto pode ser modificado para melhorá-lo, corrigi-lo ou adaptá-lo às mudanças no ambiente e nos requisitos.</p>
+<p><strong>Subcaracterísticas:</strong> Modularidade, Reusabilidade, Analisabilidade, Modificabilidade, Testabilidade</p>
+</div>
+</div>
+<!-- Portabilidade -->
+<div class="characteristic-card">
+<div class="characteristic-image">
+<svg height="100" viewbox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<rect fill="#c8e6c9" height="30" rx="3" stroke="#2e7d32" stroke-width="2" width="40" x="30" y="35"></rect>
+<rect fill="#ffffff" height="12" stroke="#2e7d32" stroke-width="1" width="20" x="40" y="45"></rect>
+<path d="M30,75 L70,75 M40,75 L40,65 M60,75 L60,65" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+<path d="M45,30 L55,30 M50,20 L50,30" stroke="#2e7d32" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="characteristic-content">
+<h3>Portabilidade</h3>
+<p>Capacidade do produto de ser transferido de um ambiente para outro, incluindo ambientes organizacionais, de hardware ou de software.</p>
+<p><strong>Subcaracterísticas:</strong> Adaptabilidade, Capacidade para ser instalado, Capacidade para substituir</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Sobre Section -->
+<section class="content" id="sobre">
+<h2>Sobre o Autor</h2>
+<div class="author-section">
+<div class="author-image">
+<svg height="120" viewbox="0 0 100 100" width="120" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="#e8f5e9" r="45" stroke="#2e7d32" stroke-width="2"></circle>
+<circle cx="50" cy="35" fill="#c8e6c9" r="15" stroke="#2e7d32" stroke-width="2"></circle>
+<path d="M25,85 C25,65 75,65 75,85" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"></path>
+</svg>
+</div>
+<div class="author-info">
+<h3>Victor Luiz</h3>
+<p><strong>Idade:</strong> 21 anos</p>
+<p><strong>Área de atuação:</strong> Tecnologia da Informação</p>
+</div>
+</div>
+<div class="highlight">
+<p>Olá! Eu me chamo Victor Luiz, tenho 21 anos e trabalho na área de TI. Ainda estou em início de carreira, mas já possuo conhecimentos básicos em banco de dados e Python. Tenho experiência com suporte Windows e estou em constante aprendizado. Sou autista e pretendo cursar Cybersegurança.</p>
+</div>
+<h3>Habilidades e Conhecimentos</h3>
+<ul class="skills-list">
+<li><span class="skill-tag">Banco de Dados</span> - Conhecimentos básicos</li>
+<li><span class="skill-tag">Python</span> - Noções iniciais de programação</li>
+<li><span class="skill-tag">Suporte Windows</span> - Experiência em solução de problemas</li>
+<li><span class="skill-tag">Qualidade de Software</span> - Estudo de padrões ISO</li>
+</ul>
+<h3>Objetivos Profissionais</h3>
+<p>Estou focado em aprimorar meus conhecimentos na área de TI, com especial interesse na segurança da informação. Meu principal objetivo é ingressar na faculdade de Cybersegurança, para desenvolver habilidades em proteção de sistemas e dados.</p>
+<h3>Sobre este Projeto</h3>
+<p>Este site foi desenvolvido como parte dos meus estudos sobre qualidade de software, com foco na ISO 25010. O objetivo é apresentar de forma clara e acessível os conceitos fundamentais deste importante padrão internacional.</p>
+<p>A qualidade de software é um tema fundamental para quem deseja atuar na área de TI, especialmente em segurança da informação, pois sistemas bem construídos e que seguem padrões de qualidade tendem a ser mais seguros e confiáveis.</p>
+</section>
+
+
+<section class="content" id="normas">
+<h2>Normas de Qualidade</h2>
+<div class="highlight">
+<p>As normas ISO são fundamentais para garantir a qualidade em processos e produtos. No contexto do desenvolvimento de software, destacam-se três normas principais:</p>
+</div>
+<div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 2rem; margin: 2rem 0;">
+<div style="flex: 1 1 250px; background-color: #f0fdf4; border-left: 4px solid #2e7d32; padding: 1rem; border-radius: 6px;">
+<h3>ISO 9001</h3>
+<p>Foco em <strong>gestão da qualidade organizacional</strong>. Abrange software como processo.</p>
+</div>
+<div style="flex: 1 1 250px; background-color: #f1f8e9; border-left: 4px solid #558b2f; padding: 1rem; border-radius: 6px;">
+<h3>ISO 9126</h3>
+<p>Primeira norma com foco em <strong>qualidade de produto de software</strong>.</p>
+</div>
+<div style="flex: 1 1 250px; background-color: #e8f5e9; border-left: 4px solid #388e3c; padding: 1rem; border-radius: 6px;">
+<h3>ISO 25010</h3>
+<p>Evolução da ISO 9126. Modelo <strong>mais atual e robusto</strong>.</p>
+</div>
+</div>
+<h3>Tabela Comparativa</h3>
+<table class="comparison-table">
+<thead>
+<tr>
+<th>Norma</th>
+<th>Ano de Lançamento</th>
+<th>Objetivo</th>
+<th>Aplicação</th>
+<th>Diferencial</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ISO 9001</td>
+<td>1987</td>
+<td>Gestão da qualidade organizacional</td>
+<td>Organizações em geral</td>
+<td>Foco em processos, inclusive de software</td>
+</tr>
+<tr>
+<td>ISO 9126</td>
+<td>1991</td>
+<td>Qualidade de produto de software</td>
+<td>Produtos de software</td>
+<td>Primeiro modelo de qualidade específico para software</td>
+</tr>
+<tr>
+<td>ISO 25010</td>
+<td>2011</td>
+<td>Modelo de qualidade de software e sistemas</td>
+<td>Sistemas e produtos de software</td>
+<td>Modelo mais robusto e atual</td>
+</tr>
+</tbody>
+</table>
+<h3>Linha do Tempo</h3>
+<div class="timeline">
+<div class="timeline-item">
+<div class="timeline-content">
+<span class="timeline-date">1987</span>
+<p>Publicação da ISO 9001, referência em gestão da qualidade.</p>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-content">
+<span class="timeline-date">1991</span>
+<p>Criação da ISO 9126, modelo de qualidade de produto de software.</p>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-content">
+<span class="timeline-date">2011</span>
+<p>Lançamento da ISO 25010, evolução da ISO 9126 com modelo mais completo.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<p>© 2025 - Qualidade de Software | ISO 25010</p>
+</footer>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation Handling
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and content sections
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding content section
+                    const targetId = this.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
